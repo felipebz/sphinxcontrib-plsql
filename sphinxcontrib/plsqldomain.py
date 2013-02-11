@@ -26,7 +26,7 @@ from sphinx.util.docfields import Field, GroupedField, TypedField
 plsql_sig_re = re.compile(
     r'''^ ([\w.]*\.)?              # package name(s)
           (\$?\w+)  \s*            # method name
-          (?: \((.*)\)             # optional: arguments
+          (?: (?:\((.*)\))?        # optional: arguments
           (?:\s* return \s* (.*))? # return annotation
           )? $                     # and nothing more
           ''', re.VERBOSE | re.IGNORECASE)
@@ -61,16 +61,38 @@ class PlSqlObject(ObjectDescription):
             name_prefix = ""
         
         sig_prefix = self.get_signature_prefix(sig)
-        
         if sig_prefix:
             signode += addnodes.desc_annotation(sig_prefix, sig_prefix)
-     
+            
         signode += addnodes.desc_name(name, name)
+        
+        if arglist:
+            signode += addnodes.desc_parameterlist()
+            stack = [signode[-1]]
+            
+            for token in arglist.split(','):
+                if not token or token == ',' or token.isspace():
+                    pass
+                else:
+                    token = token.strip()
+                    stack[-1] += addnodes.desc_parameter(token, token)
+            
+        if retann:
+            signode += addnodes.desc_returns(retann, retann)
+            
         return name, name_prefix
 
 class PlSqlPackage(PlSqlObject):
     """
     Description of a package object.
+    """
+
+    def get_signature_prefix(self, sig):
+        return self.objtype + ' '
+        
+class PlSqlMethod(PlSqlObject):
+    """
+    Description of a package member.
     """
 
     def get_signature_prefix(self, sig):
@@ -81,13 +103,16 @@ class PlSqlDomain(Domain):
     name = 'plsql'
     label = 'PL/SQL'
     object_types = {
-        'package': ObjType(l_('package'), 'package', 'obj')
+        'package': ObjType(l_('package'), 'package', 'obj'),
+        'procedure': ObjType(l_('procedure'), 'procedure', 'obj'),
+        'function': ObjType(l_('function'), 'function', 'obj'),
     }
 
     directives = {
         'package': PlSqlPackage,
+        'procedure': PlSqlMethod,
+        'function': PlSqlMethod,
     }
-
 
 def setup(app):
     app.add_domain(PlSqlDomain)

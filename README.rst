@@ -13,13 +13,29 @@ Quick Sample
 
 This is source::
 
-    .. plsql:package:: date_util_pkg
+    .. plsql:package:: session_util_pkg
 
-        date_util_pkg description.
+        session_util_pkg description.
+        
+        .. plsql:procedure:: set_current_user(username in varchar2)
+        
+            Set the current user.
+        
+        .. plsql:function:: get_current_user return varchar2
+        
+            Get the current user.
 
 Result
------------------
+------
 
-.. plsql:package:: date_util_pkg
+.. plsql:package:: session_util_pkg
 
-    date_util_pkg description.
+    session_util_pkg description.
+    
+    .. plsql:procedure:: set_current_user(username in varchar2)
+    
+        Set the current user.
+    
+    .. plsql:function:: get_current_user return varchar2
+    
+        Get the current user.
