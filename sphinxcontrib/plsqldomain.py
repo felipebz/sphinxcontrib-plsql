@@ -80,7 +80,28 @@ class PlSqlObject(ObjectDescription):
         if retann:
             signode += addnodes.desc_returns(retann, retann)
             
-        return name, name_prefix
+        return name
+
+    def get_index_text(self, name):
+        return _('%s (PL/SQL %s)') % (name, self.objtype)
+            
+    def add_target_and_index(self, name, sig, signode):
+        if name not in self.state.document.ids:
+            signode['names'].append(name)
+            signode['ids'].append(name)
+            signode['first'] = (not self.names)
+            self.state.document.note_explicit_target(signode)
+            inv = self.env.domaindata['plsql']['objects']
+            if name in inv:
+                self.state_machine.reporter.warning(
+                    'duplicate object description of %s, ' % name +
+                    'other instance in ' + self.env.doc2path(inv[name][0]),
+                    line=self.lineno)
+            inv[name] = (self.env.docname, self.objtype)
+
+        indextext = self.get_index_text(name)
+        if indextext:
+            self.indexnode['entries'].append(('single', indextext, name, ''))
 
 class PlSqlPackage(PlSqlObject):
     """
@@ -98,14 +119,18 @@ class PlSqlMethod(PlSqlObject):
     def get_signature_prefix(self, sig):
         return self.objtype + ' '
 
+class PlSqlXRefRole(XRefRole):
+    def process_link(self, env, refnode, has_explicit_title, title, target):
+        return title, target
+        
 class PlSqlDomain(Domain):
     """PL/SQL language domain."""
     name = 'plsql'
     label = 'PL/SQL'
     object_types = {
-        'package': ObjType(l_('package'), 'package', 'obj'),
-        'procedure': ObjType(l_('procedure'), 'procedure', 'obj'),
-        'function': ObjType(l_('function'), 'function', 'obj'),
+        'package': ObjType(l_('package'), 'pkg', 'obj'),
+        'procedure': ObjType(l_('procedure'), 'proc', 'obj'),
+        'function': ObjType(l_('function'), 'func', 'obj'),
     }
 
     directives = {
@@ -113,6 +138,33 @@ class PlSqlDomain(Domain):
         'procedure': PlSqlMethod,
         'function': PlSqlMethod,
     }
+    
+    roles = {
+        'pkg': PlSqlXRefRole(),
+        'proc': PlSqlXRefRole(),
+        'func': PlSqlXRefRole(),
+    }
+    
+    initial_data = {
+        'objects': {},  # fullname -> docname, objtype
+    }
+
+    def clear_doc(self, docname):
+        for fullname, (fn, _) in self.data['objects'].items():
+            if fn == docname:
+                del self.data['objects'][fullname]
+
+    def resolve_xref(self, env, fromdocname, builder,
+                     typ, target, node, contnode):
+        if target not in self.data['objects']:
+            return None
+        obj = self.data['objects'][target]
+        return make_refnode(builder, fromdocname, obj[0], target,
+                            contnode, target)
+
+    def get_objects(self):
+        for refname, (docname, type) in self.data['objects'].iteritems():
+            yield (refname, refname, type, docname, refname, 1)
 
 def setup(app):
     app.add_domain(PlSqlDomain)

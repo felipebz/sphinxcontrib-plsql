@@ -39,3 +39,15 @@ Result
     .. plsql:function:: get_current_user return varchar2
     
         Get the current user.
+        
+Cross referencing
+-----------------
+
+From other place, you can create cross reference like that::
+
+   You can modify the user using :plsql:function:`set_current_user`.
+
+Result
+-----------
+
+The :plsql:pkg:`session_util_pkg` members are: :plsql:proc:`set_current_user` and :plsql:func:`get_current_user`.
