@@ -67,6 +67,9 @@ class PlSqlObject(ObjectDescription):
         if sig_prefix:
             signode += addnodes.desc_annotation(sig_prefix, sig_prefix)
 
+        if not self.env.temp_data.get('plsql:in_package'):
+            signode += addnodes.desc_annotation(name_prefix, name_prefix)
+
         fullname = ''
         if name_prefix:
             fullname += name_prefix
