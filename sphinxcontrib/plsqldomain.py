@@ -58,12 +58,21 @@ class PlSqlObject(ObjectDescription):
         name_prefix, name, arglist, retann = m.groups()
     
         if not name_prefix:
-            name_prefix = ""
+            name_prefix = ''
+
+        if self.env.temp_data.get('plsql:in_package'):
+            name_prefix = self.env.temp_data['plsql:current_package'] + '.'
         
         sig_prefix = self.get_signature_prefix(sig)
         if sig_prefix:
             signode += addnodes.desc_annotation(sig_prefix, sig_prefix)
-            
+
+        fullname = ''
+        if name_prefix:
+            fullname += name_prefix
+
+        fullname += name
+
         signode += addnodes.desc_name(name, name)
         
         if arglist:
@@ -80,7 +89,7 @@ class PlSqlObject(ObjectDescription):
         if retann:
             signode += addnodes.desc_returns(retann, retann)
             
-        return name
+        return fullname
 
     def get_index_text(self, name):
         return _('%s (PL/SQL %s)') % (name, self.objtype)
@@ -110,7 +119,15 @@ class PlSqlPackage(PlSqlObject):
 
     def get_signature_prefix(self, sig):
         return self.objtype + ' '
-        
+
+    def before_content(self):
+        self.env.temp_data['plsql:in_package'] = True
+        if self.names:
+            self.env.temp_data['plsql:current_package'] = self.names[0]
+    
+    def after_content(self):
+        self.env.temp_data['plsql:in_package'] = False
+
 class PlSqlMethod(PlSqlObject):
     """
     Description of a package member.
@@ -123,7 +140,7 @@ class PlSqlXRefRole(XRefRole):
     """
     Description of a generic xref role.
     """
-    
+
     def process_link(self, env, refnode, has_explicit_title, title, target):
         return title, target
         
