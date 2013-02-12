@@ -115,11 +115,15 @@ class PlSqlMethod(PlSqlObject):
     """
     Description of a package member.
     """
-
+    
     def get_signature_prefix(self, sig):
         return self.objtype + ' '
 
 class PlSqlXRefRole(XRefRole):
+    """
+    Description of a generic xref role.
+    """
+    
     def process_link(self, env, refnode, has_explicit_title, title, target):
         return title, target
         
