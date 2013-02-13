@@ -161,8 +161,8 @@ class PlSqlDomain(Domain):
     label = 'PL/SQL'
     object_types = {
         'package': ObjType(l_('package'), 'pkg', 'obj'),
-        'procedure': ObjType(l_('procedure'), 'proc', 'obj'),
-        'function': ObjType(l_('function'), 'func', 'obj'),
+        'procedure': ObjType(l_('procedure'), 'meth', 'obj'),
+        'function': ObjType(l_('function'), 'meth', 'obj'),
         'library': ObjType(l_('library'), 'lib', 'obj'),
     }
 
@@ -175,8 +175,7 @@ class PlSqlDomain(Domain):
     
     roles = {
         'pkg': PlSqlXRefRole(),
-        'proc': PlSqlXRefRole(),
-        'func': PlSqlXRefRole(),
+        'meth': PlSqlXRefRole(),
         'lib': PlSqlXRefRole(),
     }
     
