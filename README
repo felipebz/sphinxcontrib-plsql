@@ -32,8 +32,11 @@ Result
 
     session_util_pkg description.
     
-    .. plsql:procedure:: set_current_user(username in varchar2)
+    .. plsql:procedure:: set_current_user(username)
     
+        :param username: User name.
+        :type username: in varchar2
+
         Set the current user.
     
     .. plsql:function:: get_current_user return varchar2

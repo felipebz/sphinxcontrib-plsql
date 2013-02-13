@@ -31,6 +31,64 @@ plsql_sig_re = re.compile(
           )? $                     # and nothing more
           ''', re.VERBOSE | re.IGNORECASE)
 
+class PlSqlTypedField(TypedField):
+    """
+    A doc field to handle PL/SQL parameter passing modes.
+
+    Two uses are possible: either parameter and type description are given
+    separately, using a field from *names* and one from *typenames*,
+    respectively, or both are given using a field from *names*, see the example.
+
+    Example::
+
+       :param foo: description of parameter foo
+       :type foo:  in out some_type
+
+       -- or --
+
+       :param foo some_type: description of parameter foo
+    """
+
+    def make_field(self, types, domain, items):
+        def handle_item(fieldarg, content):
+            par = nodes.paragraph()
+            par += self.make_xref(self.rolename, domain, fieldarg, nodes.strong)
+            if fieldarg in types:
+                par += nodes.Text(' (')
+                # NOTE: using .pop() here to prevent a single type node to be
+                # inserted twice into the doctree, which leads to
+                # inconsistencies later when references are resolved
+                fieldtype = types.pop(fieldarg)
+                if len(fieldtype) == 1 and isinstance(fieldtype[0], nodes.Text):
+                    typename = u''.join(n.astext() for n in fieldtype)
+
+                    # We split the typename because it can have the full parameter
+                    # signature, as in "in out custom_type". So, we need to do this
+                    # to make xref work.
+                    typename_components = typename.split(' ')
+                    if len(typename_components) == 1:
+                        par += self.make_xref(self.typerolename, domain, typename)
+                    else:
+                        par += nodes.Text(' '.join(typename_components[:-1]))
+                        par += self.make_xref(self.typerolename, domain, typename_components[-1])
+                else:
+                    par += fieldtype
+                par += nodes.Text(')')
+            par += nodes.Text(' -- ')
+            par += content
+            return par
+
+        fieldname = nodes.field_name('', self.label)
+        if len(items) == 1 and self.can_collapse:
+            fieldarg, content = items[0]
+            bodynode = handle_item(fieldarg, content)
+        else:
+            bodynode = self.list_type()
+            for fieldarg, content in items:
+                bodynode += nodes.list_item('', handle_item(fieldarg, content))
+        fieldbody = nodes.field_body('', bodynode)
+        return nodes.field('', fieldname, fieldbody)
+
 class PlSqlObject(ObjectDescription):
     """
     Description of a general PL/SQL object.
@@ -41,9 +99,9 @@ class PlSqlObject(ObjectDescription):
     }
 
     doc_field_types = [
-        TypedField('parameter', label=l_('Parameters'),
-                   names=('param', 'parameter', 'arg', 'argument'),
-                   typerolename='obj', typenames=('paramtype', 'type')),
+        PlSqlTypedField('parameter', label=l_('Parameters'),
+                        names=('param', 'parameter', 'arg', 'argument'),
+                        typerolename='obj', typenames=('paramtype', 'type')),
         Field('returnvalue', label=l_('Returns'), has_arg=False,
               names=('returns', 'return')),
         Field('returntype', label=l_('Return type'), has_arg=False,
