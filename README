@@ -36,9 +36,9 @@ Result
     
         Set the current user.
     
-.. plsql:function:: session_util_pkg.get_current_user return varchar2
+    .. plsql:function:: get_current_user return varchar2
 
-    Get the current user.
+        Get the current user.
         
 Cross referencing
 -----------------
