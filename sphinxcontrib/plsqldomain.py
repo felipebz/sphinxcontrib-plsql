@@ -70,6 +70,7 @@ class PlSqlTypedField(TypedField):
                         par += self.make_xref(self.typerolename, domain, typename)
                     else:
                         par += nodes.Text(' '.join(typename_components[:-1]))
+                        par += nodes.Text(' ')
                         par += self.make_xref(self.typerolename, domain, typename_components[-1])
                 else:
                     par += fieldtype
