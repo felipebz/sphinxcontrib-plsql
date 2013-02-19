@@ -206,6 +206,14 @@ class PlSqlLibrary(PlSqlObject):
     def get_signature_prefix(self, sig):
         return self.objtype + ' '
 
+class PlSqlType(PlSqlObject):
+    """
+    Description of a type.
+    """
+
+    def get_signature_prefix(self, sig):
+        return self.objtype + ' '
+
 class PlSqlXRefRole(XRefRole):
     """
     Description of a generic xref role.
@@ -223,6 +231,7 @@ class PlSqlDomain(Domain):
         'procedure': ObjType(l_('procedure'), 'meth', 'obj'),
         'function': ObjType(l_('function'), 'meth', 'obj'),
         'library': ObjType(l_('library'), 'lib', 'obj'),
+        'type': ObjType(l_('type'), 'type', 'obj'),
     }
 
     directives = {
@@ -230,12 +239,14 @@ class PlSqlDomain(Domain):
         'procedure': PlSqlMethod,
         'function': PlSqlMethod,
         'library': PlSqlLibrary,
+        'type': PlSqlType,
     }
     
     roles = {
         'pkg': PlSqlXRefRole(),
         'meth': PlSqlXRefRole(),
         'lib': PlSqlXRefRole(),
+        'type': PlSqlXRefRole(),
     }
     
     initial_data = {
